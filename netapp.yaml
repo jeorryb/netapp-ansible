@@ -1,0 +1,16 @@
+---
+- hosts: 127.0.0.1
+  name: Rename aggregate
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Rename Aggregate
+      aggr_rename:
+        node: "172.16.199.21"
+        user_name: "admin"
+        password: "0okm9ijn"
+        aggr: "my_renamed_aggr"
+        new_aggr_name: "test_my_renamed_aggr"
+
+...
