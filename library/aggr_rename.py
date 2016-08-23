@@ -19,7 +19,42 @@ version_added: "1.0"
 author: "Jeorry Balasabas (@jeorryb)"
 short_description: Rename NetApp CDOT Aggregate
 description:
-- Ansible module to rename NetApp CDOT aggregates via the NetApp python SDK.
+  - Ansible module to rename NetApp CDOT aggregates via the NetApp python SDK.
+requirements:
+  - NetApp Manageability SDK
+options:
+  node:
+    required: True
+    description:
+      - "The ip address or hostname of the node"
+  user_name:
+    required: True
+    description:
+      - "Administrator user for the cluster/node"
+  password:
+    required: True
+    description:
+      - "password for the admin user"
+  aggr:
+    required: True
+    description:
+      - "Name of the aggregate you want to rename"
+  new_aggr_name:
+    required: True
+    description:
+      - "New name for the aggregate"
+'''
+
+EXAMPLES = '''
+# Rename aggregate
+- name: Rename aggregate
+    aggr_rename:
+      node: "192.168.0.1"
+      user_name: "admin"
+      password: "Password1"
+      aggr: "old_aggregate"
+      new_aggr_name: "my_new_aggr0"
+
 '''
 
 def aggr_rename(module):
