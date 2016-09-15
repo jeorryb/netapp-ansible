@@ -1,9 +1,0 @@
----
-
-node: 172.16.199.21
-user_name: admin
-password: 0okm9ijn
-aggr: aggr0_n01
-new_aggr_name: aggr_ansible
-
-...

@@ -1,16 +1,66 @@
 ---
-- hosts: 127.0.0.1
-  name: Rename aggregate
+- hosts: localhost
+  name: cDOT Configure
   connection: local
   gather_facts: false
+  vars:
+    user: admin
+    pwd:  0okm9ijn
+    array: "atlcdot"
+    ansible_python_interpreter: /Users/jeorryb/virtualenvs/ansible/bin/python
 
   tasks:
-    - name: Rename Aggregate
-      aggr_rename:
-        node: "172.16.199.21"
-        user_name: "admin"
-        password: "0okm9ijn"
-        aggr: "my_renamed_aggr"
-        new_aggr_name: "test_my_renamed_aggr"
+#    - name: Rename Aggregate
+#      aggr_rename:
+#        cluster: "172.16.199.10"
+#        user_name: "admin"
+#        password: "0okm9ijn"
+#        aggr: "n1_aggr_root"
+#        new_aggr_name: "n1_aggr_root_test"
+#        
+#    - name: Rename N2 Aggregate
+#      aggr_rename:
+#        cluster: "172.16.199.10"
+#        user_name: "admin"
+#        password: "0okm9ijn"
+#        aggr: "n2_aggr_root"
+#       new_aggr_name: "n2_aggr_root_test"
+#
+    # - name: Change date time
+#       date_time:
+#         cluster: "172.16.199.10"
+#         user_name: "admin"
+#         password: "0okm9ijn"
+#         timezone: "America/Chicago"
+#         date: "02/29/2016 16:03:00"
+#
+    #- name: Create NTP Server
+#      ntp_create:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        ntp_server: "ntp1.gatech.edu"
+#
+#    - name: Change volume size
+#      vol_size:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        vserver: "svm_nfs"
+#        volume: "testvol"
+#        size: "1g"
+        
+    - name: Set service-processor ip
+      sp_modify:
+        cluster: "{{ array }}"
+        user_name: "{{ user }}"
+        password: "{{ pwd }}"
+        node: "atlcdot-01"
+        ip: "172.16.199.15"
+        netmask: "255.255.255.0"
+        gateway: "172.16.199.2"
+      
+                
+      
 
 ...

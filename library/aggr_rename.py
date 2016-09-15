@@ -23,10 +23,10 @@ description:
 requirements:
   - NetApp Manageability SDK
 options:
-  node:
+  cluster:
     required: True
     description:
-      - "The ip address or hostname of the node"
+      - "The ip address or hostname of the cluster"
   user_name:
     required: True
     description:
@@ -49,7 +49,7 @@ EXAMPLES = '''
 # Rename aggregate
 - name: Rename aggregate
     aggr_rename:
-      node: "192.168.0.1"
+      cluster: "192.168.0.1"
       user_name: "admin"
       password: "Password1"
       aggr: "old_aggregate"
@@ -59,7 +59,7 @@ EXAMPLES = '''
 
 def aggr_rename(module):
 
-	node = module.params['node']
+	cluster = module.params['cluster']
 	user_name = module.params['user_name']
 	password = module.params['password']
 	aggr = module.params['aggr']
@@ -69,7 +69,7 @@ def aggr_rename(module):
 
 	results['changed'] = False
 
-	s = NaServer(node, 1 , 30)
+	s = NaServer(cluster, 1 , 0)
 	s.set_server_type("FILER")
 	s.set_transport_type("HTTPS")
 	s.set_port(443)
@@ -94,7 +94,7 @@ def aggr_rename(module):
 def main():
 	module = AnsibleModule(
 		argument_spec = dict(
-			node=dict(required=True),
+			cluster=dict(required=True),
 			user_name=dict(required=True),
 			password=dict(required=True),
 			aggr=dict(required=True),

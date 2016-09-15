@@ -72,7 +72,7 @@ def date_time(module):
 
   results['changed'] = False
 
-  s = NaServer(cluster, 1 , 1)
+  s = NaServer(cluster, 1 , 0)
   s.set_server_type("FILER")
   s.set_transport_type("HTTPS")
   s.set_port(443)
