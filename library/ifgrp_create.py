@@ -38,7 +38,7 @@ options:
   node:
     required: True
     description:
-      - "Name of node who owns the disks used to create the aggregate"
+      - "Name of the ifgrp's node"
   ifgrp:
     required: True
     description:
