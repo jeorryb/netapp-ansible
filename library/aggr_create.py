@@ -39,7 +39,7 @@ options:
     required: True
     description:
       - "Name of node who owns the disks used to create the aggregate"
-  act_disk_type:
+  disk_type:
     required: True
     description:
       - "Actual disk type of disks used for aggregate. e.g. SSD|SAS|BSAS"
@@ -52,11 +52,11 @@ options:
     description:
       - "Number of disks used to create the aggregate"
   disk_size:
-    required: False
+    required: True
     description:
       - "Disk size specified with the unit, e.g. 1024g|3t"    
   raid_size:
-    required: False
+    required: True
     description:
       - "Maximum number of disks in each RAID group"
   raid_type:
@@ -141,9 +141,9 @@ def main():
       disk_type=dict(required=True, type='str'),
       aggr=dict(required=True),
       disk_count=dict(required=True, type='int'),
-      disk_size=dict(required=False, type='str'),
+      disk_size=dict(required=True, type='str'),
       raid_type=dict(default='raid_dp', type='str'),
-      raid_size=dict(required=False, type='int'),
+      raid_size=dict(required=True, type='int'),
 
     ),
     supports_check_mode = False
