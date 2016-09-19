@@ -1,7 +1,7 @@
 # ansible-netapp
 Ansible modules and playbooks utilizing the Python API in the NetApp Manageability SDK
 
-This utilizes custom Ansible modules built using the NetApp Manageability SDK (NMSDK). The playbooks aid in the provisioning of Clustered Data ONTAP and hopefully entire FlexPods.
+This utilizes custom Ansible modules built using the NetApp Manageability SDK (NMSDK). The playbooks aid in the provisioning and management of Clustered Data ONTAP and hopefully entire FlexPods.
 
 ## Dependencies
 
