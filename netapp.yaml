@@ -49,16 +49,28 @@
 #        vserver: "svm_nfs"
 #        volume: "testvol"
 #        size: "1g"
-        
-    - name: Set service-processor ip
-      sp_modify:
+ #       
+#    - name: Set service-processor ip
+#      sp_modify:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        node: "atlcdot-01"
+#        ip: "172.16.199.15"
+#        netmask: "255.255.255.0"
+#        gateway: "172.16.199.2"
+
+    - name: Create aggregate
+      aggr_create:
         cluster: "{{ array }}"
         user_name: "{{ user }}"
         password: "{{ pwd }}"
-        node: "atlcdot-01"
-        ip: "172.16.199.15"
-        netmask: "255.255.255.0"
-        gateway: "172.16.199.2"
+        node: "atlcdot-02"
+        aggr: "n02_aggr0"
+        disk_type: "FCAL"
+        disk_count: 24
+        disk_size: "1020m"
+        raid_size: 16
       
                 
       
