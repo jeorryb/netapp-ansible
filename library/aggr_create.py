@@ -20,8 +20,9 @@ author: "Jeorry Balasabas (@jeorryb)"
 short_description: Create Aggregate NetApp CDOT
 description:
   - Ansible module to create NetApp CDOT aggregates via the NetApp python SDK.
-requirements:
-  - NetApp Manageability SDK
+
+requirements: ["NetApp Manageability SDK"]
+
 options:
   cluster:
     required: True
@@ -42,7 +43,8 @@ options:
   disk_type:
     required: True
     description:
-      - "Actual disk type of disks used for aggregate. e.g. SSD|SAS|BSAS"
+      - "Actual disk type of disks used for aggregate."
+    choices: ['ATA', 'BSAS', 'FCAL', 'FSAS', 'LUN', 'MSATA', 'SAS', 'SSD', 'VMDISK']
   aggr:
     required: True
     description:
@@ -62,7 +64,9 @@ options:
   raid_type:
     required: False
     description:
-      - "Raid type e.g. raid4|raid_dp"
+      - "Raid type."
+    default: 'raid_dp'
+    choices: ['raid4', 'raid_dp', 'raid_tec']
 
 '''
 

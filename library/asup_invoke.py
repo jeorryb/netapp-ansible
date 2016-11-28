@@ -46,7 +46,9 @@ options:
   asup_type:
     required: True
     description:
-      - "Type of autosupport to generate; test|performance|all"
+      - "Type of autosupport to generate"
+    default: 'all'
+    choices: ['test', 'performance', 'all']
   uri:
     required: False
     description:

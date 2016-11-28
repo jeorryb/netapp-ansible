@@ -20,8 +20,9 @@ author: "Jeorry Balasabas (@jeorryb)"
 short_description: Add disks to Aggregate NetApp CDOT
 description:
   - Ansible module to add disks to an existing NetApp CDOT aggregate via the NetApp python SDK.
-requirements:
-  - NetApp Manageability SDK
+
+requirements: ["NetApp Manageability SDK"]
+
 options:
   cluster:
     required: True
@@ -38,7 +39,8 @@ options:
   disk_type:
     required: True
     description:
-      - "Actual disk type of disks used for aggregate. e.g. SSD|SAS|BSAS"
+      - "Actual disk type of disks used for aggregate."
+    choices: ['ATA', 'BSAS', 'FCAL', 'FSAS', 'LUN', 'MSATA', 'SAS', 'SSD', 'VMDISK']
   aggr:
     required: True
     description:

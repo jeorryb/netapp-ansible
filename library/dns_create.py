@@ -3,6 +3,7 @@
 import sys
 import json
 
+
 try:
   from NaServer import *
   NASERVER_AVAILABLE = True
@@ -14,12 +15,12 @@ if not NASERVER_AVAILABLE:
 
 DOCUMENTATTION = '''
 ---
-module: aggr_hybrid
+module: dns_create
 version_added: "1.0"
 author: "Jeorry Balasabas (@jeorryb)"
-short_description: Modify aggregate to be a flash pool
+short_description: Set date, time and timezone for NetApp cDOT array.
 description:
-  - Ansible module to modify existing NetApp CDOT aggregate to allow SSDs and become a flash pool via the NetApp python SDK.
+  - Ansible module to create dns server entries for a NetApp CDOT array via the NetApp python SDK.
 requirements:
   - NetApp Manageability SDK
 options:
@@ -35,38 +36,43 @@ options:
     required: True
     description:
       - "password for the admin user"
-  aggr:
+  vserver:
     required: True
     description:
-      - "Name of aggregate"
-  hybrid:
+      - "vserver that DNS entries are being created on"
+  domains:
     required: True
     description:
-      - "Boolean to enable or disable hybrid aggregate"
-    default: True
+      - "Comma separated list of domains (FQDN) that the servers are responsible for"
+  dns_servers:
+    required: True
+    description:
+      - "Comma separated list of dns servers"
 
 '''
 
 EXAMPLES = '''
-# Create flashpool
-- name: Change aggr0 to hybrid_enabled true
-    aggr_hybrid:
+# Create DNS servers for cluster vserver
+- name: Create dns servers
+    dns_create:
       cluster: "192.168.0.1"
       user_name: "admin"
       password: "Password1"
-      aggr: "aggr0_ssd"
-      hybrid: "True"
+      vserver: "atlcdot"
+      domains: "netapp.com"
+      dns_servers: "8.8.8.8, 4.2.2.2"
 
 '''
 
-def aggr_hybrid(module):
+
+def dns_create(module):
 
   cluster = module.params['cluster']
   user_name = module.params['user_name']
   password = module.params['password']
-  aggr = module.params['aggr']
-  hybrid = module.params['hybrid']
-  
+  vserver = module.params['vserver']
+  domains = module.params['domains']
+  dns_servers = module.params['dns_servers']
 
   results = {}
 
@@ -81,11 +87,14 @@ def aggr_hybrid(module):
 
   args = NaElement("args")
 
-  args.child_add(NaElement("arg", "aggregate"))
-  args.child_add(NaElement("arg", "modify"))
-  args.child_add(NaElement("arg", aggr))
-  args.child_add(NaElement("arg", "-hybrid-enabled"))
-  args.child_add(NaElement("arg", hybrid))
+  args.child_add(NaElement("arg", "dns"))
+  args.child_add(NaElement("arg", "create"))
+  args.child_add(NaElement("arg", "-vserver"))
+  args.child_add(NaElement("arg", vserver))
+  args.child_add(NaElement("arg", "-domains"))
+  args.child_add(NaElement("arg", domains))
+  args.child_add(NaElement("arg", "-name-servers"))
+  args.child_add(NaElement("arg", dns_servers))
 
   systemCli = NaElement("system-cli")
   systemCli.child_add(args)
@@ -107,20 +116,18 @@ def main():
       cluster=dict(required=True),
       user_name=dict(required=True),
       password=dict(required=True),
-      aggr=dict(required=True),
-      hybrid=dict(default=True, type='bool'),
+      vserver=dict(required=True),
+      domains=dict(required=True),
+      dns_servers=dict(required=True),
     ),
     supports_check_mode = False
   )
 
-  results = aggr_hybrid(module)
+  results = dns_create(module)
 
-  
+
 
   module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
-
-
-

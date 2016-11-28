@@ -17,7 +17,7 @@
 #        password: "0okm9ijn"
 #        aggr: "n1_aggr_root"
 #        new_aggr_name: "n1_aggr_root_test"
-#        
+#
 #    - name: Rename N2 Aggregate
 #      aggr_rename:
 #        cluster: "172.16.199.10"
@@ -49,7 +49,7 @@
 #        vserver: "svm_nfs"
 #        volume: "testvol"
 #        size: "1g"
- #       
+ #
 #    - name: Set service-processor ip
 #      sp_modify:
 #        cluster: "{{ array }}"
@@ -59,20 +59,148 @@
 #        ip: "172.16.199.15"
 #        netmask: "255.255.255.0"
 #        gateway: "172.16.199.2"
+#
+#    - name: Create aggregate
+#      aggr_create:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        node: "atlcdot-02"
+#        aggr: "n02_aggr0"
+#        disk_type: "FCAL"
+#        disk_count: 24
+#        disk_size: "1020m"
+#        raid_size: 16
+#
+#    - name: Add disks
+#      aggr_add:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        aggr: "n02_aggr0"
+#        disk_type: "FCAL"
+#        disk_count: "1"
+#        disk_size: "1020m"
+#
+#    - name: Enable Hybrid Aggregate
+#      aggr_hybrid:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        aggr: "n02_aggr0"
+#        hybrid: False
+#
+#    - name: Set flow-control to none
+#      port_flow:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        node: "atlcdot-02"
+#        port: "e0d"
+#        flow_admin: "none"
+#
+#    - name: Set mtu to 9000
+#      port_mtu:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        node: "atlcdot-02"
+#        port: "e0d"
+#        mtu: 1500
+#
+#    - name: Create ifgrp a0a
+#      ifgrp_create:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        node: "atlcdot-02"
+#        dist_func: "ip"
+#        ifgrp: "a0a"
+#        mode: "multimode_lacp"
+#
+#    - name: Create vlan a0a-701
+#      vlan_create:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        node: "atlcdot-02"
+#        int_name: "e0d"
+#        vlanid: "701"
+#
+#    - name: Create lif lif_nfs_01
+#      int_create:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        node: "atlcdot-02"
+#        vserver: "svm_nfs"
+#        lif: "lif_nfs_01"
+#        role: "data"
+#        port: "e0d"
+#        data_proto: ["nfs", "cifs"]
+#        ip: "172.16.199.168"
+#        netmask: "255.255.255.0"
+#
+#    - name: Create broadcast domain nfs
+#      broadcast_domain_create:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        bc_domain: "nfs"
+#        mtu: "1500"
+#        ports: ["atlcdot-01:e0d"]
+#
+#    - name: Create subnet
+#      subnet_create:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        subnet_name: "nfs"
+#        bc_domain: "nfs"
+#        subnet: "10.1.10.0/24"
+#        ip_ranges: ["10.1.10.20-10.1.10.30", "10.1.10.60-10.1.10.70"]
+#
+#    - name: modify asup
+#      asup_modify:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        from_addr: "admin@widgets.com"
+#        is_node_subject: "True"
+#        mail_host: ["smtp.widget.com"]
+#        node: "atlcdot-01"
+#        partner: ["support@global.com"]
+#        to_addr: ["itsupport@widgets.com", "dave@widgets.com"]
+#        transport: "https"
+#
+#    - name: Invoke asup
+#      asup_invoke:
+#        cluster: "{{ array }}"
+#        user_name: "{{ user }}"
+#        password: "{{ pwd }}"
+#        node: "atlcdot-01"
+#        message: "Test asup"
+#        asup_type: "test"
+    #
+    # - name: Create vserver for CIFS
+    #   vserver_create:
+    #     cluster: "{{ array }}"
+    #     user_name: "{{ user }}"
+    #     password: "{{ pwd }}"
+    #     vserver: "svm_cifs"
+    #     root_vol: "svm_cifs_root"
+    #     root_vol_aggr: "n1_aggr0"
+    #     security: "ntfs"
 
-    - name: Create aggregate
-      aggr_create:
+    - name: Create dns for CIFS vserver
+      dns_create:
         cluster: "{{ array }}"
         user_name: "{{ user }}"
         password: "{{ pwd }}"
-        node: "atlcdot-02"
-        aggr: "n02_aggr0"
-        disk_type: "FCAL"
-        disk_count: 24
-        disk_size: "1020m"
-        raid_size: 16
-      
-                
-      
+        vserver: "svm_cifs"
+        domains: "jeorry.com"
+        dns_servers: "4.2.2.2"
+
+
 
 ...
