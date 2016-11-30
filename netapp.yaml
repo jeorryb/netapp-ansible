@@ -8,6 +8,7 @@
     pwd:  0okm9ijn
     array: "atlcdot"
     ansible_python_interpreter: /Users/jeorryb/virtualenvs/ansible/bin/python
+    all_ports: ['e0a', 'e0b']
 
   tasks:
 #    - name: Rename Aggregate
@@ -90,14 +91,15 @@
 #        aggr: "n02_aggr0"
 #        hybrid: False
 #
-#    - name: Set flow-control to none
-#      port_flow:
-#        cluster: "{{ array }}"
-#        user_name: "{{ user }}"
-#        password: "{{ pwd }}"
-#        node: "atlcdot-02"
-#        port: "e0d"
-#        flow_admin: "none"
+    # - name: Set flow-control to none
+    #   port_flow:
+    #     cluster: "{{ array }}"
+    #     user_name: "{{ user }}"
+    #     password: "{{ pwd }}"
+    #     node: "atlcdot-02"
+    #     port: "{{ item }}"
+    #     flow_admin: "none"
+    #   with_items: "{{ all_ports }}"
 #
 #    - name: Set mtu to 9000
 #      port_mtu:
@@ -108,15 +110,24 @@
 #        port: "e0d"
 #        mtu: 1500
 #
-#    - name: Create ifgrp a0a
-#      ifgrp_create:
-#        cluster: "{{ array }}"
-#        user_name: "{{ user }}"
-#        password: "{{ pwd }}"
-#        node: "atlcdot-02"
-#        dist_func: "ip"
-#        ifgrp: "a0a"
-#        mode: "multimode_lacp"
+  #  - name: Create ifgrp a0a
+  #    ifgrp_create:
+  #      cluster: "{{ array }}"
+  #      user_name: "{{ user }}"
+  #      password: "{{ pwd }}"
+  #      node: "atlcdot-02"
+  #      dist_func: "ip"
+  #      ifgrp: "a0a"
+  #      mode: "multimode_lacp"
+
+   - name: Add port to ifgrp a0a
+     ifgrp_add_port:
+       cluster: "{{ array }}"
+       user_name: "{{ user }}"
+       password: "{{ pwd }}"
+       node: "atlcdot-02"
+       ifgrp: "a0a"
+       port: "e0d"
 #
 #    - name: Create vlan a0a-701
 #      vlan_create:
@@ -192,14 +203,14 @@
     #     root_vol_aggr: "n1_aggr0"
     #     security: "ntfs"
 
-    - name: Create dns for CIFS vserver
-      dns_create:
-        cluster: "{{ array }}"
-        user_name: "{{ user }}"
-        password: "{{ pwd }}"
-        vserver: "svm_cifs"
-        domains: "jeorry.com"
-        dns_servers: "4.2.2.2"
+    # - name: Create dns for CIFS vserver
+    #   dns_create:
+    #     cluster: "{{ array }}"
+    #     user_name: "{{ user }}"
+    #     password: "{{ pwd }}"
+    #     vserver: "svm_cifs"
+    #     domains: "jeorry.com"
+    #     dns_servers: "4.2.2.2"
 
 
 
