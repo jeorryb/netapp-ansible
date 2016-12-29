@@ -48,7 +48,7 @@ options:
     description:
       - "specifies the role of the LIF"
   data_proto:
-    required: True
+    required: False
     description:
       - "Specifies the list of data protocols specified on the LIF"
   node:
@@ -124,7 +124,7 @@ def int_create(module):
 
   xi = NaElement('data-protocols')
   api.child_add(xi)
-  
+
   for proto in data_proto:
     xi.child_add_string('data-protocol', proto)
 
@@ -136,7 +136,7 @@ def int_create(module):
   api.child_add_string('vserver', vserver)
   if module.params['subnet']:
     api.child_add_string('subnet-name', subnet)
-  
+
 
 
 
@@ -162,7 +162,7 @@ def main():
       vserver=dict(required=True),
       lif=dict(required=True),
       role=dict(default='data', choices=['undef', 'cluster', 'data', 'node_mgmt', 'intercluster', 'cluster_mgmt']),
-      data_proto=dict(required=True, type='list'),
+      data_proto=dict(required=False, type='list'),
       port=dict(required=True),
       ip=dict(required=True),
       netmask=dict(required=True),
@@ -174,13 +174,9 @@ def main():
 
   results = int_create(module)
 
-  
+
 
   module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
-
-
-
-
