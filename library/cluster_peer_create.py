@@ -122,15 +122,11 @@ def main():
     supports_check_mode = False
   )
 
-  results = ifgrp_create(module)
+  results = cluster_peer_create(module)
 
-  
+
 
   module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
-
-
-
-

@@ -124,10 +124,9 @@ def int_create(module):
 
   xi = NaElement('data-protocols')
   api.child_add(xi)
-
-  for proto in data_proto:
-    xi.child_add_string('data-protocol', proto)
-
+  if module.params['data_proto']:
+    for proto in data_proto:
+      xi.child_add_string('data-protocol', proto)
   api.child_add_string('home-node', node)
   api.child_add_string('home-port', port)
   api.child_add_string('interface-name', lif)
