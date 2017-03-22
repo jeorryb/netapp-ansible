@@ -18,7 +18,8 @@ RUN apk add --update \
     py-yaml \
     unzip \
     tar && \
-  pip install --upgrade pip python-keyczar && \
+  pip install --upgrade pip python-keyczar \
+  pip install pyvmomi && \
   rm -rf /var/cache/apk/*
 
 RUN mkdir /etc/ansible/ /ansible
