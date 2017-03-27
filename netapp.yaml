@@ -5,12 +5,58 @@
   gather_facts: false
   vars:
     user: admin
-    pwd:  0okm9ijn
-    array: "atlcdot"
+    pwd:  netapp123
+    array: "n4m"
     ansible_python_interpreter: /Users/jeorryb/virtualenvs/ansible/bin/python
     all_ports: ['e0a', 'e0b']
+    brod_dom:
+      - {name: "test", mtu: "1500", ports: ["atlcdot-01:e0d","atlcdot-02:e0d"]}
+    both_nodes: ["atlcdot-01", "atlcdot-02"]
+    asup_dl: dl@n4mative.com
+    smtp: smtp.widget.com
+    node1: "atlcdot-01"
+    node2: "atlcdot-02"
+    ic_lifs:
+      - {name: "lif_ic_n1", vserver: "{{ array }}", node: "{{ node1 }}", port: "e0d", ip: "172.16.199.41", netmask: "255.255.255.0" }
+      - {name: "lif_ic_n2", vserver: "{{ array }}", node: "{{ node2 }}", port: "e0d", ip: "172.16.199.42", netmask: "255.255.255.0" }
 
   tasks:
+
+    # - name: create intercluster lifs
+    #   int_create:
+    #     cluster: "{{ array }}"
+    #     user_name: "{{ user }}"
+    #     password: "{{ pwd }}"
+    #     node: "{{ item.node }}"
+    #     vserver: "{{ item.vserver }}"
+    #     lif: "{{ item.name }}"
+    #     role: "intercluster"
+    #     port: "{{ item.port }}"
+    #     ip: "{{ item.ip }}"
+    #     netmask: "{{ item.netmask }}"
+    #   with_items: "{{ ic_lifs }}"
+    # - name: modify asup
+    #   asup_modify:
+    #     cluster: "{{ array }}"
+    #     user_name: "{{ user }}"
+    #     password: "{{ pwd }}"
+    #     from_addr: "{{ item }}@widget.com"
+    #     is_node_subject: "True"
+    #     mail_host: "{{ smtp }}"
+    #     node: "{{ item }}"
+    #     partner: ["support@n4mative.com"]
+    #     to_addr: "{{ asup_dl }}"
+    #     transport: "https"
+    #   with_items: "{{ both_nodes }}"
+    # - name: Create broadcast domain nfs
+    #   broadcast_domain_create:
+    #     cluster: "{{ array }}"
+    #     user_name: "{{ user }}"
+    #     password: "{{ pwd }}"
+    #     bc_domain: "{{ item.name }}"
+    #     mtu: "{{ item.mtu }}"
+    #     ports: "{{ item.ports }}"
+    #   with_items: "{{ brod_dom }}"
 #    - name: Rename Aggregate
 #      aggr_rename:
 #        cluster: "172.16.199.10"
@@ -27,13 +73,13 @@
 #        aggr: "n2_aggr_root"
 #       new_aggr_name: "n2_aggr_root_test"
 #
-    # - name: Change date time
-#       date_time:
-#         cluster: "172.16.199.10"
-#         user_name: "admin"
-#         password: "0okm9ijn"
-#         timezone: "America/Chicago"
-#         date: "02/29/2016 16:03:00"
+    - name: Change date time
+      date_time:
+        cluster: '{{ array }}'
+        user_name: '{{ user }}'
+        password: '{{ pwd }}'
+        timezone: "America/Chicago"
+        validate_certs: False
 #
     #- name: Create NTP Server
 #      ntp_create:
@@ -120,14 +166,14 @@
   #      ifgrp: "a0a"
   #      mode: "multimode_lacp"
 
-   - name: Add port to ifgrp a0a
-     ifgrp_add_port:
-       cluster: "{{ array }}"
-       user_name: "{{ user }}"
-       password: "{{ pwd }}"
-       node: "atlcdot-02"
-       ifgrp: "a0a"
-       port: "e0d"
+  #  - name: Add port to ifgrp a0a
+  #    ifgrp_add_port:
+  #      cluster: "{{ array }}"
+  #      user_name: "{{ user }}"
+  #      password: "{{ pwd }}"
+  #      node: "atlcdot-02"
+  #      ifgrp: "a0a"
+  #      port: "e0d"
 #
 #    - name: Create vlan a0a-701
 #      vlan_create:
@@ -211,6 +257,7 @@
     #     vserver: "svm_cifs"
     #     domains: "jeorry.com"
     #     dns_servers: "4.2.2.2"
+
 
 
 
