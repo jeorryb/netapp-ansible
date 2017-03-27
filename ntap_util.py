@@ -9,7 +9,7 @@ def ntap_argument_spec():
         cluster=dict(required=True),
         user_name=dict(required=True),
         password=dict(required=True),
-        validate_certs=dict(type='bool', default=True),
+        val_certs=dict(type='bool', default=True),
     )
 
 def invoke_elem_no_verify():
@@ -28,9 +28,9 @@ def connect_to_api(module):
     cluster = module.params['cluster']
     user_name = module.params['user_name']
     password = module.params['password']
-    validate_certs = module.params['validate_certs']
+    val_certs = module.params['val_certs']
 
-    if not validate_certs:
+    if not val_certs:
         invoke_elem_no_verify()
 
     connection = NaServer(cluster, 1 , 0)
