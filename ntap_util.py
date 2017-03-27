@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+import ssl
+from NaServer import *
+
 def ntap_argument_spec():
     return dict(
         cluster=dict(required=True),
