@@ -62,9 +62,6 @@ EXAMPLES = '''
 
 def date_time(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
   timezone = module.params['timezone']
   date = module.params['date']
 
@@ -72,12 +69,6 @@ def date_time(module):
 
   results['changed'] = False
 
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
 
   args = NaElement("args")
 
@@ -93,7 +84,7 @@ def date_time(module):
 
   systemCli = NaElement("system-cli")
   systemCli.child_add(args)
-  xo = s.invoke_elem(systemCli)
+  xo = connect_to_api.invoke_elem(systemCli)
 
   if(xo.results_errno() != 0):
     r = xo.results_reason()
@@ -106,16 +97,12 @@ def date_time(module):
   return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
+  argument_spec = ntap_argument_spec()
+  argument_spec.update(dict(
       timezone=dict(required=False),
-      date=dict(required=True),
-    ),
-    supports_check_mode = False
-  )
+      date=dict(required=True)))
+  
+  module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
   results = date_time(module)
 
@@ -124,6 +111,7 @@ def main():
   module.exit_json(**results)
 
 from ansible.module_utils.basic import *
+from ntap_util import * 
 main()
 
 
