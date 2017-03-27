@@ -8,7 +8,7 @@ def ntap_argument_spec():
         cluster=dict(required=True),
         user_name=dict(required=True),
         password=dict(required=True),
-        validate_certs=dict(type='bool', required=False, default=True),
+        validate_certs=dict(type='bool', default=True),
     )
 
 def invoke_elem_no_verify():
