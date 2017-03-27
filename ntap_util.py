@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from ansible.module_utils.basic import *
 import ssl
 from NaServer import *
 
@@ -13,11 +14,12 @@ def ntap_argument_spec():
 
 def invoke_elem_no_verify():
     try:
-    _create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
+        _create_unverified_https_context = ssl._create_unverified_context
+        
+    except AttributeError:
     # Legacy Python that doesn't verify HTTPS certificates by default
     pass
-else:
+    else:
     # Handle target environment that doesn't support HTTPS verification
     ssl._create_default_https_context = _create_unverified_https_context
 
