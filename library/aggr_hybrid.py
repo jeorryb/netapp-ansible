@@ -35,6 +35,10 @@ options:
     required: True
     description:
       - "password for the admin user"
+  val_certs:
+    default: True
+    description:
+      - "Perform SSL certificate validation"
   aggr:
     required: True
     description:
@@ -64,6 +68,7 @@ def aggr_hybrid(module):
   cluster = module.params['cluster']
   user_name = module.params['user_name']
   password = module.params['password']
+  val_certs = module.params['val_certs']
   aggr = module.params['aggr']
   hybrid = module.params['hybrid']
   
@@ -71,6 +76,17 @@ def aggr_hybrid(module):
   results = {}
 
   results['changed'] = False
+
+  if not val_certs:
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        
+        except AttributeError:
+        # Legacy Python that doesn't verify HTTPS certificates by default
+            pass
+        else:
+        # Handle target environment that doesn't support HTTPS verification
+            ssl._create_default_https_context = _create_unverified_https_context
 
   s = NaServer(cluster, 1 , 0)
   s.set_server_type("FILER")
@@ -107,6 +123,7 @@ def main():
       cluster=dict(required=True),
       user_name=dict(required=True),
       password=dict(required=True),
+      val_certs=dict(type='bool', default=True),
       aggr=dict(required=True),
       hybrid=dict(default=True, type='bool'),
     ),
