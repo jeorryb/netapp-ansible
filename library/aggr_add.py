@@ -36,6 +36,10 @@ options:
     required: True
     description:
       - "password for the admin user"
+  val_certs:
+    default: True
+    description:
+      - "Perform SSL certificate validation"
   disk_type:
     required: True
     description:
@@ -75,6 +79,7 @@ def aggr_add(module):
   cluster = module.params['cluster']
   user_name = module.params['user_name']
   password = module.params['password']
+  val_certs = module.params['val_certs']
   disk_type = module.params['disk_type']
   aggr = module.params['aggr']
   disk_count = module.params['disk_count']
@@ -83,6 +88,17 @@ def aggr_add(module):
   results = {}
 
   results['changed'] = False
+
+  if not val_certs:
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        
+        except AttributeError:
+        # Legacy Python that doesn't verify HTTPS certificates by default
+            pass
+        else:
+        # Handle target environment that doesn't support HTTPS verification
+            ssl._create_default_https_context = _create_unverified_https_context
 
   s = NaServer(cluster, 1 , 0)
   s.set_server_type("FILER")
@@ -116,6 +132,7 @@ def main():
       cluster=dict(required=True),
       user_name=dict(required=True),
       password=dict(required=True),
+      val_certs=dict(type='bool', default=True),
       disk_type=dict(required=True, type='str'),
       aggr=dict(required=True),
       disk_count=dict(required=True, type='int'),
