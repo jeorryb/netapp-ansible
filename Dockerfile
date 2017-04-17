@@ -27,7 +27,7 @@ RUN echo "[local]" >> /etc/ansible/hosts && \
     echo "localhost" >> /etc/ansible/hosts
 
 RUN \
-  curl -fssl https://releases.ansible.com/ansible/ansible-2.2.1.0.tar.gz -o ansible.tar.gz && \
+  curl -fssl https://releases.ansible.com/ansible/ansible-2.3.0.0.tar.gz -o ansible.tar.gz && \
   tar -xzf ansible.tar.gz -C ansible --strip-components 1 && \
   rm -fr ansible.tar.gz /ansible/docs /ansible/examples /ansible/packaging
 
