@@ -9,6 +9,7 @@ def ntap_argument_spec():
         user_name=dict(required=True),
         password=dict(required=True, no_log=True),
         validate_certs=dict(type='bool', default=True),
+        vserver=dict(required=False),
     )
 
 def invoke_ssl_no_verify():
@@ -28,6 +29,7 @@ def connect_to_api(module, vserver=None):
     user_name = module.params['user_name']
     password = module.params['password']
     validate_certs = module.params['validate_certs']
+    vserver = module.params['vserver']
 
     if not validate_certs:
         invoke_ssl_no_verify()

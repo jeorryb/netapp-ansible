@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -75,73 +76,53 @@ EXAMPLES = '''
 
 def subnet_create(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  subnet_name = module.params['subnet_name']
-  subnet = module.params['subnet']
-  ip_ranges = module.params['ip_ranges']
-  bc_domain = module.params['bc_domain']
-  gateway = module.params['gateway']
+    subnet_name = module.params['subnet_name']
+    subnet = module.params['subnet']
+    ip_ranges = module.params['ip_ranges']
+    bc_domain = module.params['bc_domain']
+    gateway = module.params['gateway']
 
-  results = {}
-
-  results['changed'] = False
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  api = NaElement("net-subnet-create")
-  api.child_add_string("broadcast-domain", bc_domain)
-  api.child_add_string("subnet-name", subnet_name)
-  api.child_add_string("subnet", subnet)
-
-  if module.params['gateway']:
-    api.child_add_string("gateway", gateway)
-
-  xi = NaElement("ip-ranges")
-  api.child_add(xi)
-  for ip in ip_ranges:
-    xi.child_add_string("ip-range", ip)
-
-
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
+    results = {}
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    api = NaElement("net-subnet-create")
+    api.child_add_string("broadcast-domain", bc_domain)
+    api.child_add_string("subnet-name", subnet_name)
+    api.child_add_string("subnet", subnet)
 
-  return results
+    if module.params['gateway']:
+        api.child_add_string("gateway", gateway)
+
+    xi = NaElement("ip-ranges")
+    api.child_add(xi)
+    for ip in ip_ranges:
+        xi.child_add_string("ip-range", ip)
+
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(api)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      subnet_name=dict(required=True),
-      subnet=dict(required=True),
-      ip_ranges=dict(required=True, type='list'),
-      bc_domain=dict(required=True),
-      gateway=dict(required=False),
 
-    ),
-    supports_check_mode = False
-  )
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        subnet_name=dict(required=True),
+        subnet=dict(required=True),
+        ip_ranges=dict(required=True, type='list'),
+        bc_domain=dict(required=True),
+        gateway=dict(required=False),))
 
-  results = subnet_create(module)
-
-  
-
-  module.exit_json(**results)
+    results = subnet_create(module)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -66,66 +67,45 @@ EXAMPLES = '''
 
 def vlan_create(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  node = module.params['node']
-  int_name = module.params['int_name']
-  vlanid = module.params['vlanid']
+    node = module.params['node']
+    int_name = module.params['int_name']
+    vlanid = module.params['vlanid']
 
-  results = {}
-
-  results['changed'] = False
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  api = NaElement("net-vlan-create")
-
-  xi = NaElement("vlan-info")
-  api.child_add(xi)
-  
-  xi.child_add_string('node', node)
-  xi.child_add_string('parent-interface', int_name)
-  xi.child_add_string('vlanid', vlanid)
-
-
-
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
+    results = {}
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    api = NaElement("net-vlan-create")
 
-  return results
+    xi = NaElement("vlan-info")
+    api.child_add(xi)
+
+    xi.child_add_string('node', node)
+    xi.child_add_string('parent-interface', int_name)
+    xi.child_add_string('vlanid', vlanid)
+
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(api)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      node=dict(required=True),
-      int_name=dict(required=True),
-      vlanid=dict(required=True),
 
-    ),
-    supports_check_mode = False
-  )
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        node=dict(required=True),
+        int_name=dict(required=True),
+        vlanid=dict(required=True),))
 
-  results = vlan_create(module)
-
-  
-
-  module.exit_json(**results)
+    results = vlan_create(module)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -55,53 +56,35 @@ EXAMPLES = '''
 
 def ntp_create(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  ntp_server = module.params['ntp_server']
-  
+    ntp_server = module.params['ntp_server']
 
-  results = {}
-
-  results['changed'] = False
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  api = NaElement("ntp-server-create")
-  api.child_add_string("server-name", ntp_server)
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
+    results = {}
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    api = NaElement("ntp-server-create")
+    api.child_add_string("server-name", ntp_server)
 
-  return results
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(api)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      ntp_server=dict(required=True),
-    ),
-    supports_check_mode = False
-  )
 
-  results = ntp_create(module)
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        ntp_server=dict(required=True),))
 
-  
-
-  module.exit_json(**results)
+    results = ntp_create(module)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -64,58 +65,38 @@ EXAMPLES = '''
 
 def vol_size(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  vserver = module.params['vserver']
-  volume = module.params['volume']
-  size = module.params['size']
+    volume = module.params['volume']
+    size = module.params['size']
 
-  results = {}
-
-  results['changed'] = False
-
-  s = NaServer(cluster, 1 , 15)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-  s.set_vserver(vserver)
-
-  api = NaElement("volume-size")
-  api.child_add_string("volume",volume)
-  api.child_add_string("new-size",size)
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
+    results = {}
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    api = NaElement("volume-size")
+    api.child_add_string("volume", volume)
+    api.child_add_string("new-size", size)
 
-  return results
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(api)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      vserver=dict(required=True),
-      volume=dict(required=True),
-      size=dict(required=True),
-    ),
-    supports_check_mode = False
-  )
 
-  results = vol_size(module)
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        volume=dict(required=True),
+        size=dict(required=True),))
 
-  
-
-  module.exit_json(**results)
+    results = vol_size(module)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

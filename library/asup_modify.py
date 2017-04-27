@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -95,112 +96,82 @@ EXAMPLES = '''
 
 def asup_modify(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  val_certs = module.params['val_certs']
-  from_addr = module.params['from_addr']
-  is_node_subject = module.params['is_node_subject']
-  mail_host = module.params['mail_host']
-  node = module.params['node']
-  partner = module.params['partner']
-  to_addr = module.params['to_addr']
-  transport = module.params['transport']
-  enabled = module.params['enabled']
+    from_addr = module.params['from_addr']
+    is_node_subject = module.params['is_node_subject']
+    mail_host = module.params['mail_host']
+    node = module.params['node']
+    partner = module.params['partner']
+    to_addr = module.params['to_addr']
+    transport = module.params['transport']
+    enabled = module.params['enabled']
 
-  results = {}
-
-  results['changed'] = False
-
-  if not val_certs:
-        try:
-            _create_unverified_https_context = ssl._create_unverified_context
-        
-        except AttributeError:
-        # Legacy Python that doesn't verify HTTPS certificates by default
-            pass
-        else:
-        # Handle target environment that doesn't support HTTPS verification
-            ssl._create_default_https_context = _create_unverified_https_context
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  api = NaElement("autosupport-config-modify")
-  api.child_add_string("node-name", node)
-
-  if module.params['from_addr']:
-    api.child_add_string("from", from_addr)
-
-  if module.params['enabled']:
-    api.child_add_string("is-enabled", enabled)
-
-  if module.params['is_node_subject']:
-    api.child_add_string("is-node-in-subject", is_node_subject)
-
-  if module.params['mail_host']:
-    xi3 = NaElement("mail-hosts")
-    api.child_add(xi3)
-    for smtp in mail_host:
-      xi3.child_add_string("string", smtp)
-
-  if module.params['partner']:
-    xi1 = NaElement("partner-address")
-    api.child_add(xi1)
-    for addr in partner:
-      xi1.child_add_string("mail-address", addr)
-
-  if module.params['to_addr']:
-    xi2 = NaElement("to")
-    api.child_add(xi2)
-    for addr in to_addr:
-      xi2.child_add_string("mail-address", addr)
-
-  if module.params['transport']:
-    api.child_add_string("transport", transport)
-
-
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
+    results = {}
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    api = NaElement("autosupport-config-modify")
+    api.child_add_string("node-name", node)
 
-  return results
+    if module.params['from_addr']:
+        api.child_add_string("from", from_addr)
+
+    if module.params['enabled']:
+        api.child_add_string("is-enabled", enabled)
+
+    if module.params['is_node_subject']:
+        api.child_add_string("is-node-in-subject", is_node_subject)
+
+    if module.params['mail_host']:
+        xi3 = NaElement("mail-hosts")
+        api.child_add(xi3)
+        for smtp in mail_host:
+            xi3.child_add_string("string", smtp)
+
+    if module.params['partner']:
+        xi1 = NaElement("partner-address")
+        api.child_add(xi1)
+        for addr in partner:
+            xi1.child_add_string("mail-address", addr)
+
+    if module.params['to_addr']:
+        xi2 = NaElement("to")
+        api.child_add(xi2)
+        for addr in to_addr:
+            xi2.child_add_string("mail-address", addr)
+
+    if module.params['transport']:
+        api.child_add_string("transport", transport)
+
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(api)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      val_certs=dict(type='bool', default=True),
-      from_addr=dict(required=False),
-      is_node_subject=dict(required=False, type='bool'),
-      mail_host=dict(required=False, type='list'),
-      node=dict(required=True),
-      partner=dict(required=False, type='list'),
-      to_addr=dict(required=False, type='list'),
-      transport=dict(required=False, choices=['https', 'http', 'smtp']),
-      enabled=dict(required=False, type='bool'),
 
-    ),
-    supports_check_mode = False
-  )
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        from_addr=dict(required=False),
+        is_node_subject=dict(required=False, type='bool'),
+        mail_host=dict(required=False, type='list'),
+        node=dict(required=True),
+        partner=dict(required=False, type='list'),
+        to_addr=dict(required=False, type='list'),
+        transport=dict(required=False, choices=['https', 'http', 'smtp']),
+        enabled=dict(required=False, type='bool'),))
 
-  results = asup_modify(module)
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False) 
 
-  
+    results = asup_modify(module)
 
-  module.exit_json(**results)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

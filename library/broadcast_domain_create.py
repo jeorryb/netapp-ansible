@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -66,66 +67,48 @@ EXAMPLES = '''
 
 def broadcast_domain_create(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  bc_domain = module.params['bc_domain']
-  mtu = module.params['mtu']
-  ports = module.params['ports']
+    bc_domain = module.params['bc_domain']
+    mtu = module.params['mtu']
+    ports = module.params['ports']
 
-  results = {}
-
-  results['changed'] = False
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  api = NaElement("net-port-broadcast-domain-create")
-  api.child_add_string("broadcast-domain", bc_domain)
-  api.child_add_string("mtu", mtu)
-
-  xi = NaElement("ports")
-  api.child_add(xi)
-
-  for port in ports:
-    xi.child_add_string("net-qualified-port-name", port)
-
-
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
+    results = {}
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    api = NaElement("net-port-broadcast-domain-create")
+    api.child_add_string("broadcast-domain", bc_domain)
+    api.child_add_string("mtu", mtu)
 
-  return results
+    xi = NaElement("ports")
+    api.child_add(xi)
+
+    for port in ports:
+        xi.child_add_string("net-qualified-port-name", port)
+
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(api)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      bc_domain=dict(required=True),
-      mtu=dict(required=True),
-      ports=dict(required=True, type='list'),
 
-    ),
-    supports_check_mode = False
-  )
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        bc_domain=dict(required=True),
+        mtu=dict(required=True),
+        ports=dict(required=True, type='list'),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
-  results = broadcast_domain_create(module)
+    results = broadcast_domain_create(module)
 
-  
-
-  module.exit_json(**results)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
