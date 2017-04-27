@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -65,76 +66,46 @@ EXAMPLES = '''
 
 def aggr_hybrid(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  val_certs = module.params['val_certs']
-  aggr = module.params['aggr']
-  hybrid = module.params['hybrid']
-  
+    aggr = module.params['aggr']
+    hybrid = module.params['hybrid']
 
-  results = {}
+    results = {}
 
-  results['changed'] = False
-
-  if not val_certs:
-        try:
-            _create_unverified_https_context = ssl._create_unverified_context
-        
-        except AttributeError:
-        # Legacy Python that doesn't verify HTTPS certificates by default
-            pass
-        else:
-        # Handle target environment that doesn't support HTTPS verification
-            ssl._create_default_https_context = _create_unverified_https_context
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  args = NaElement("args")
-
-  args.child_add(NaElement("arg", "aggregate"))
-  args.child_add(NaElement("arg", "modify"))
-  args.child_add(NaElement("arg", aggr))
-  args.child_add(NaElement("arg", "-hybrid-enabled"))
-  args.child_add(NaElement("arg", hybrid))
-
-  systemCli = NaElement("system-cli")
-  systemCli.child_add(args)
-  xo = s.invoke_elem(systemCli)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    args = NaElement("args")
 
-  return results
+    args.child_add(NaElement("arg", "aggregate"))
+    args.child_add(NaElement("arg", "modify"))
+    args.child_add(NaElement("arg", aggr))
+    args.child_add(NaElement("arg", "-hybrid-enabled"))
+    args.child_add(NaElement("arg", hybrid))
+
+    systemCli = NaElement("system-cli")
+    systemCli.child_add(args)
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(systemCli)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      val_certs=dict(type='bool', default=True),
-      aggr=dict(required=True),
-      hybrid=dict(default=True, type='bool'),
-    ),
-    supports_check_mode = False
-  )
 
-  results = aggr_hybrid(module)
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        aggr=dict(required=True),
+        hybrid=dict(default=True, type='bool'),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
+    results = aggr_hybrid(module)
 
-  
-
-  module.exit_json(**results)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
