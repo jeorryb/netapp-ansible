@@ -67,6 +67,7 @@ def vol_size(module):
 
     volume = module.params['volume']
     size = module.params['size']
+    vserver = module.params['vserver']
 
     results = {}
     results['changed'] = False
@@ -75,7 +76,7 @@ def vol_size(module):
     api.child_add_string("volume", volume)
     api.child_add_string("new-size", size)
 
-    connection = ntap_util.connect_to_api(module)
+    connection = ntap_util.connect_to_api(module, vserver)
     xo = connection.invoke_elem(api)
 
     if(xo.results_errno() != 0):
@@ -92,6 +93,7 @@ def main():
 
     argument_spec = ntap_util.ntap_argument_spec()
     argument_spec.update(dict(
+        vserver=dict(required=True),
         volume=dict(required=True),
         size=dict(required=True),))
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
