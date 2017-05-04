@@ -104,6 +104,7 @@ def main():
         int_name=dict(required=True),
         vlanid=dict(required=True),))
 
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
     results = vlan_create(module)
     module.exit_json(**results)
 

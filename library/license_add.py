@@ -87,6 +87,7 @@ def main():
     argument_spec = ntap_util.ntap_argument_spec()
     argument_spec.update(dict(
         license_keys=dict(required=True, type='list'),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     results = license_add(module)
     module.exit_json(**results)

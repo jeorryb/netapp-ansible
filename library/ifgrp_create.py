@@ -110,7 +110,7 @@ def main():
         mode=dict(default='multimode_lacp',
                   choices=['multimode_lacp', 'multimode', 'singlemode']),))
 
-    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False) 
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
     results = ifgrp_create(module)
 
 

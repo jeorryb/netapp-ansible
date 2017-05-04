@@ -128,6 +128,7 @@ def main():
         netmask=dict(required=False, type='str'),
         gateway=dict(required=False, type='str'),
         enabled=dict(default=True, type='bool'),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     results = sp_modify(module)
     module.exit_json(**results)

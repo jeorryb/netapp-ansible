@@ -103,6 +103,7 @@ def int_create(module):
     ip = module.params['ip']
     netmask = module.params['netmask']
     subnet = module.params['subnet']
+    vserver = module.params['vserver']
 
     results = {}
     results['changed'] = False
@@ -127,7 +128,7 @@ def int_create(module):
     if module.params['subnet']:
         api.child_add_string('subnet-name', subnet)
 
-    connection = ntap_util.connect_to_api(module)
+    connection = ntap_util.connect_to_api(module, vserver=vserver)
     xo = connection.invoke_elem(api)
 
     if(xo.results_errno() != 0):
@@ -153,7 +154,9 @@ def main():
         port=dict(required=True),
         ip=dict(required=True),
         netmask=dict(required=True),
+        vserver=dict(required=True),
         subnet=dict(required=False),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     results = int_create(module)
     module.exit_json(**results)

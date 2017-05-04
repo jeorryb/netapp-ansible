@@ -99,6 +99,7 @@ def main():
         node=dict(required=True),
         port=dict(required=True),
         mtu=dict(required=True, type='int'),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
 
     results = port_mtu(module)

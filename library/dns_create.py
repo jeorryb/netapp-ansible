@@ -105,6 +105,7 @@ def main():
     argument_spec.update(dict(
         domains=dict(required=True),
         dns_servers=dict(required=True),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     results = dns_create(module)
     module.exit_json(**results)

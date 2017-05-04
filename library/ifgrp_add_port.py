@@ -99,6 +99,7 @@ def main():
         node=dict(required=True),
         ifgrp=dict(required=True),
         port=dict(required=True),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     results = ifgrp_add_port(module)
     module.exit_json(**results)

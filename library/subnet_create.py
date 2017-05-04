@@ -120,6 +120,7 @@ def main():
         ip_ranges=dict(required=True, type='list'),
         bc_domain=dict(required=True),
         gateway=dict(required=False),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     results = subnet_create(module)
     module.exit_json(**results)

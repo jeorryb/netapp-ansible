@@ -100,7 +100,7 @@ def main():
         node=dict(required=True),
         port=dict(required=True),
         flow_admin=dict(default='none', choices=['none', 'receive', 'send', 'full']),))
-
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
     results = port_flow(module)
     module.exit_json(**results)
 

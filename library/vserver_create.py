@@ -136,6 +136,7 @@ def main():
         security=dict(required=True, choices=['unix', 'ntfs', 'mixed']),
         vserver_sub=dict(default='default', choices=['default', 'dp_destination', 'sync_source']),))
 
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
     results = vserver_create(module)
     module.exit_json(**results)
 
