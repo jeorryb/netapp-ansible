@@ -94,7 +94,7 @@ def main():
     argument_spec.update(dict(
         volume=dict(required=True),
         size=dict(required=True),))
-
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
     results = vol_size(module)
     module.exit_json(**results)
 
