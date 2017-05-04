@@ -74,7 +74,7 @@ def aggr_rename(module):
     api.child_add_string("aggregate", aggr)
     api.child_add_string("new-aggregate-name", new_aggr_name)
     connection = ntap_util.connect_to_api(module)
-    xo = connection.invoke_elem(systemCli)
+    xo = connection.invoke_elem(api)
 
     if(xo.results_errno() != 0):
         r = xo.results_reason()
