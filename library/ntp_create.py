@@ -82,7 +82,8 @@ def main():
     argument_spec = ntap_util.ntap_argument_spec()
     argument_spec.update(dict(
         ntp_server=dict(required=True),))
-
+    
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
     results = ntp_create(module)
     module.exit_json(**results)
 
