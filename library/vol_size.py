@@ -75,7 +75,7 @@ def vol_size(module):
     api.child_add_string("volume", volume)
     api.child_add_string("new-size", size)
 
-    connection = ntap_util.connect_to_api(module, vserver)
+    connection = ntap_util.connect_to_api(module)
     xo = connection.invoke_elem(api)
 
     if(xo.results_errno() != 0):

@@ -24,7 +24,7 @@ def invoke_ssl_no_verify():
         ssl._create_default_https_context = _create_unverified_https_context
 
 
-def connect_to_api(module, vserver=None):
+def connect_to_api(module):
     cluster = module.params['cluster']
     user_name = module.params['user_name']
     password = module.params['password']
@@ -40,7 +40,7 @@ def connect_to_api(module, vserver=None):
     connection.set_port(443)
     connection.set_style("LOGIN")
     connection.set_admin_user(user_name, password)
-    if vserver:
+    if module.params['vserver']:
         connection.set_vserver(vserver)
     return connection
 
