@@ -69,6 +69,7 @@ def dns_create(module):
 
     domains = module.params['domains']
     dns_servers = module.params['dns_servers']
+    vserver = module.params['vserver']
 
     results = {}
     results['changed'] = False
@@ -104,6 +105,7 @@ def main():
     argument_spec = ntap_util.ntap_argument_spec()
     argument_spec.update(dict(
         domains=dict(required=True),
+        vserver=dict(required=True),
         dns_servers=dict(required=True),))
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 

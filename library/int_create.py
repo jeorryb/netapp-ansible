@@ -101,6 +101,7 @@ def int_create(module):
     data_proto = module.params['data_proto']
     port = module.params['port']
     ip = module.params['ip']
+    node = module.params['node']
     netmask = module.params['netmask']
     subnet = module.params['subnet']
     vserver = module.params['vserver']

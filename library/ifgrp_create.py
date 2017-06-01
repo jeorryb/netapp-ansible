@@ -88,7 +88,7 @@ def ifgrp_create(module):
 
 
     connection = ntap_util.connect_to_api(module)
-    xo = connection.invoke_elem(systemCli)
+    xo = connection.invoke_elem(api)
 
     if(xo.results_errno() != 0):
         r = xo.results_reason()
