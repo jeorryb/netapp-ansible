@@ -52,14 +52,14 @@ options:
 '''
 
 EXAMPLES = '''
-# Remove ports from default broadxast domain
+# Remove ports from default broadcast domain
 - name: Remove e0c & e0d from broadcast domain Default
     broadcast_domain_del_ports:
       cluster: "192.168.0.1"
       user_name: "admin"
       password: "Password1"
-      node: "atlcdot-01"
-      bc_domain: "a0a"
+      ipspace: "Default"
+      bc_domain: "Default"
       ports: ["atlcdot-01:e0d", "atlcdot-02:e0d"]
 
 '''
