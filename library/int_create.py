@@ -71,7 +71,18 @@ options:
     required: False
     description:
       - "subnet name; ip and netmask not used if this parameter is specified"
-
+  status_admin:
+    required: False
+    description:
+      - "Specifies the administrative status of the LIF. Possible values are 'up' and 'down'"
+  failover_group:
+    required: False
+    description:
+      - "Specifies the failover group name."
+  failover_policy:
+    required: False
+    description:
+      - "Specifies the failover policy for the LIF. Possible values: 'nextavail', 'priority', 'disabled', 'system_defined', 'system_defined', 'sfo_partner_only', 'ipspace_wide', 'broadcast_domain_wide'"
 
 '''
 
@@ -107,6 +118,10 @@ def int_create(module):
   ip = module.params['ip']
   netmask = module.params['netmask']
   subnet = module.params['subnet']
+  status_admin = module.params['status_admin']
+  failover_group = module.params['failover_group']
+  failover_policy = module.params['failover_policy']
+
 
   results = {}
 
@@ -135,7 +150,12 @@ def int_create(module):
   api.child_add_string('vserver', vserver)
   if module.params['subnet']:
     api.child_add_string('subnet-name', subnet)
-
+  if module.params['status_admin']:
+    api.child_add_string('administrative-status', status_admin)
+  if module.params['failover_group']:
+    api.child_add_string('failover-group', failover_group)
+  if module.params['failover_policy']:
+    api.child_add_string('failover-policy', failover_policy)
 
 
 
@@ -166,6 +186,10 @@ def main():
       ip=dict(required=True),
       netmask=dict(required=True),
       subnet=dict(required=False),
+      status_admin=dict(default='up', choices=['up', 'down']),
+      failover_group=dict(required=False),
+      failover_policy=dict(required=False, choices=['nextavail', 'priority', 'disabled', 'system_defined', 'system_defined', 'sfo_partner_only', 'ipspace_wide', 'broadcast_domain_wide']),
+
 
     ),
     supports_check_mode = False
