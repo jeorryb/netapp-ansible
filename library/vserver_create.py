@@ -15,7 +15,7 @@ if not NASERVER_AVAILABLE:
 DOCUMENTATTION = '''
 ---
 module: vserver_create
-version_added: "1.0"
+version_added: "1.1"
 author: "Jeorry Balasabas (@jeorryb)"
 short_description: Create vservers
 description:
@@ -67,7 +67,10 @@ options:
     required: False
     description:
       - "Vserver subtype; choices are default|dp_destination|sync_source "
-
+  ns_switch:
+    required: False
+    description:
+      - "Name Server switch configuration details for the Vserver. Possible values: 'nis', 'file', 'ldap'. "
 
 '''
 
@@ -98,6 +101,7 @@ def vserver_create(module):
   root_vol_aggr = module.params['root_vol_aggr']
   security = module.params['security']
   vserver_sub = module.params['vserver_sub']
+  ns_switch = module.params['ns_switch']
 
   results = {}
 
@@ -119,7 +123,10 @@ def vserver_create(module):
   api.child_add_string('root-volume-aggregate', root_vol_aggr)
   api.child_add_string('root-volume-security-style', security)
   api.child_add_string('vserver-subtype', vserver_sub)
-  
+  if module.params['ns_switch']:
+    xi = NaElement("name-server-switch")
+    api.child_add(xi)
+    xi.child_add_string("nsswitch", ns_switch)
 
   xo = s.invoke_elem(api)
 
@@ -147,6 +154,7 @@ def main():
       root_vol_aggr=dict(required=True),
       security=dict(required=True, choices=['unix', 'ntfs', 'mixed']),
       vserver_sub=dict(default='default', choices=['default', 'dp_destination', 'sync_source']),
+      ns_switch=dict(required=False, choices=['nis', 'file', 'ldap']),
 
     ),
     supports_check_mode = False
