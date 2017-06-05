@@ -15,8 +15,8 @@ if not NASERVER_AVAILABLE:
 DOCUMENTATTION = '''
 ---
 module: aggr_add
-version_added: "1.0"
-author: "Jeorry Balasabas (@jeorryb)"
+version_added: "1.1"
+author: "Jeorry Balasabas (@jeorryb) & Valerian Beaudoin"
 short_description: Add disks to Aggregate NetApp CDOT
 description:
   - Ansible module to add disks to an existing NetApp CDOT aggregate via the NetApp python SDK.
@@ -41,7 +41,7 @@ options:
     description:
       - "Perform SSL certificate validation"
   disk_type:
-    required: True
+    required: False
     description:
       - "Actual disk type of disks used for aggregate."
     choices: ['ATA', 'BSAS', 'FCAL', 'FSAS', 'LUN', 'MSATA', 'SAS', 'SSD', 'VMDISK']
@@ -50,13 +50,25 @@ options:
     description:
       - "Name of aggregate"
   disk_count:
-    required: True
+    required: False
     description:
       - "Number of disks used to create the aggregate"
   disk_size:
     required: False
     description:
       - "Size of disks to add specified with the unit of measurements; e.g. 2048g|3t"
+  storage_pool:
+    required: False
+    description:
+      - "Name of the storage pool from which the capacity will be added. This parameter cannot be used with disk-list or disk-count option."
+  allocation_units:
+    required: False
+    description:
+      - "The spare capacity in terms of number of allocation units to be added to a given aggregate. This option works only when 'storage-pool' is specified."
+  raid_type:
+    required: False
+    description:
+      - "Specifies the raid-type of the new RAID groups being created as part of the disk add operation. This option should be used while adding SSD disks for the first time to a hybrid-enabled aggregate. Possible values: raid4 and raid_dp only. If not specified, the default value is the raid-type of the aggregate."
 
 '''
 
@@ -84,6 +96,9 @@ def aggr_add(module):
   aggr = module.params['aggr']
   disk_count = module.params['disk_count']
   disk_size = module.params['disk_size']
+  storage_pool = module.params['storage_pool']
+  allocation_units = module.params['allocation_units']
+  raid_type = module.params['raid_type']
 
   results = {}
 
@@ -108,10 +123,19 @@ def aggr_add(module):
   s.set_admin_user(user_name, password)
 
   api = NaElement("aggr-add")
-  api.child_add_string("disk-type", disk_type)
+  if module.params['disk_type']:
+    api.child_add_string("disk-type", disk_type)
   api.child_add_string("aggregate", aggr)
-  api.child_add_string("disk-count", disk_count)
-  api.child_add_string("disk-size-with-unit", disk_size)
+  if module.params['disk_count']:
+    api.child_add_string("disk-count", disk_count)
+  if module.params['disk_size']:
+    api.child_add_string("disk-size-with-unit", disk_size)
+  if module.params['storage_pool']:
+    api.child_add_string("storage-pool", storage_pool)
+  if module.params['allocation_units']:
+    api.child_add_string("allocation-units", allocation_units)
+  if module.params['raid_type']:
+    api.child_add_string("cache-raid-type", raid_type)
 
 
   xo = s.invoke_elem(api)
@@ -133,10 +157,13 @@ def main():
       user_name=dict(required=True),
       password=dict(required=True),
       val_certs=dict(type='bool', default=True),
-      disk_type=dict(required=True, type='str'),
+      disk_type=dict(required=False, type='str'),
       aggr=dict(required=True),
-      disk_count=dict(required=True, type='int'),
-      disk_size=dict(required=True, type='str'),
+      disk_count=dict(required=False, type='int'),
+      disk_size=dict(required=False, type='str'),
+      allocation_units=dict(required=False, type='int'),
+      storage_pool=dict(required=False, type='str'),
+      raid_type=dict(required=False, type='str'),
 
     ),
     supports_check_mode = False
@@ -150,7 +177,4 @@ def main():
 
 from ansible.module_utils.basic import *
 main()
-
-
-
 
