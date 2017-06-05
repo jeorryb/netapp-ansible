@@ -63,6 +63,14 @@ options:
     required: False
     description:
       - "Security flavors for the superuser. Default value is 'none'. Possible values: 'any', 'none', 'never', 'krb5', 'ntlm', 'sys', 'spinauth'"
+  rule_index:
+    required: False
+    description:
+      - "Export rule index. A next available value is assigned if no value is provided during create else the rule is inserted at the given rule index position in the export-rule table."
+  allow_suid:
+    required: False
+    description:
+      - "If 'true', NFS server will honor SetUID bits in SETATTR operation. Default value is 'true'."
 
    
 '''
@@ -77,8 +85,9 @@ EXAMPLES = '''
       vserver: "svm_nfs"
       policy_name: "forbidden"
       client_match: "0.0.0.0/0"
-      ro_rule: "none"
-      rw_rule: "none"
+      ro_rule: ["none"]
+      rw_rule: ["none"]
+      protocol: ["nfs, cifs"]
 
 
 '''
@@ -95,6 +104,8 @@ def export_rule_create(module):
   rw_rule = module.params['rw_rule']
   protocol = module.params['protocol']
   super_user_security = module.params['super_user_security']
+  rule_index = module.params['rule_index']
+  allow_suid = module.params['allow_suid']
 
   results = {}
 
@@ -114,17 +125,27 @@ def export_rule_create(module):
   if module.params['ro_rule']:
     xi = NaElement('ro-rule')
     api.child_add(xi)
-    xi.child_add_string('security-flavor', ro_rule)
+    for flavor in ro_rule:
+      xi.child_add_string('security-flavor', flavor)
   if module.params['rw_rule']:
     xi = NaElement("rw-rule")
     api.child_add(xi)
-    xi.child_add_string("security-flavor", rw_rule)
+    for flavor in rw_rule:
+      xi.child_add_string("security-flavor", flavor)
   if module.params['protocol']:
     xi = NaElement('protocol')
     api.child_add(xi)
-    xi.child_add_string('access-protocol', protocol)
+    for proto in protocol:
+      xi.child_add_string('access-protocol', proto)
   if module.params['super_user_security']:
-    api.child_add_string("super-user-security", super_user_security)
+    xi = NaElement('super-user-security')
+    api.child_add(xi)
+    for flavor in super_user_security:
+      xi.child_add_string('security-flavor', flavor)
+  if module.params['rule_index']:
+    api.child_add_string('rule-index', rule_index)
+  if module.params['allow_suid']:
+    api.child_add_string('is-allow-set-uid-enabled', allow_suid)
   
   xo = s.invoke_elem(api)
 
@@ -147,10 +168,12 @@ def main():
       vserver=dict(required=True),
       policy_name=dict(required=True),
       client_match=dict(required=True, type='str'),
-      ro_rule=dict(required=False, choices=['any', 'none', 'never', 'krb5', 'ntlm', 'sys', 'spinauth']),
-      rw_rule=dict(required=False, choices=['any', 'none', 'never', 'krb5', 'ntlm', 'sys', 'spinauth']),
-      protocol=dict(required=False, choices=['any', 'nfs2', 'nfs3', 'nfs3', 'cifs', 'nfs4', 'flexcache']),
-      super_user_security=dict(required=False, choices=['any', 'none', 'never', 'krb5', 'ntlm', 'sys', 'spinauth']),
+      ro_rule=dict(required=False, type='list'),
+      rw_rule=dict(required=False, type='list'),
+      protocol=dict(required=False, type='list'),
+      super_user_security=dict(required=False, type='list'),
+      rule_index=dict(required=False, type='int'),
+      allow_suid=dict(required=False, type='bool'),
 
     ),
     supports_check_mode = False
