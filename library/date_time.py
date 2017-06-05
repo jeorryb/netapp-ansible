@@ -41,7 +41,7 @@ options:
     description:
       - "Timezone specified in the Olson format, Area/Location Timezone"
   date:
-    required: True
+    required: False
     description:
       - "This sets the date and time, in the format MM/DD/YYYY HH:MM:SS"
 
@@ -126,7 +126,7 @@ def main():
       password=dict(required=True),
       val_certs=dict(type='bool', default=True),
       timezone=dict(required=False),
-      date=dict(required=True),
+      date=dict(required=False),
     ), 
       supports_check_mode=False
   )
