@@ -17,10 +17,10 @@ DOCUMENTATTION = '''
 ---
 module: netapp_command
 version_added: "1.0"
-author: "Jeorry Balasabas (@jeorryb)"
-short_description: Set date, time and timezone for NetApp cDOT array.
+author: "Valerian Beaudoin"
+short_description: Run a command on a NetApp cDOT array.
 description:
-  - Ansible module to set the date, time and timezone for a NetApp CDOT array via the NetApp python SDK.
+  - Ansible module run any command on a NetApp CDOT array via the NetApp python SDK.
 requirements:
   - NetApp Manageability SDK
 options:
