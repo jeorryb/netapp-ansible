@@ -17,9 +17,9 @@ DOCUMENTATTION = '''
 module: snmp_community_add
 version_added: "1.0"
 author: "Valerian Beaudoin"
-short_description: Resize NetApp CDOT Volume
+short_description: Configure SNMP on NetApp CDOT Arrays
 description:
-  - Ansible module to resize NetApp CDOT volumes via the NetApp python SDK.
+  - Ansible module to configure the community of SNMP on NetApp CDOT Arrays via the NetApp python SDK.
 requirements:
   - NetApp Manageability SDK
 options:
