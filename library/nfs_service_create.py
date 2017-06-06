@@ -17,9 +17,9 @@ DOCUMENTATTION = '''
 module: nfs_service_create
 version_added: "1.0"
 author: "Valerian Beaudoin"
-short_description: Resize NetApp CDOT Volume
+short_description: Create NFS service on NetApp CDOT arrays
 description:
-  - Ansible module to resize NetApp CDOT volumes via the NetApp python SDK.
+  - Ansible module create a NFS service on NetApp CDOT arrays via the NetApp python SDK.
 requirements:
   - NetApp Manageability SDK
 options:
