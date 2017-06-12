@@ -14,9 +14,9 @@ if not NASERVER_AVAILABLE:
 
 DOCUMENTATTION = '''
 ---
-module: lif_create
+module: int_modify
 version_added: "1.0"
-author: "Jeorry Balasabas (@jeorryb)"
+author: "Valerian Beaudoin"
 short_description: Create interface
 description:
   - Ansible module to create interfaces on NetApp CDOT arrays via the NetApp python SDK.
@@ -44,7 +44,7 @@ options:
     description:
       - "name of the logical interface"
   role:
-    required: True
+    required: False
     description:
       - "specifies the role of the LIF"
   data_proto:
@@ -52,29 +52,25 @@ options:
     description:
       - "Specifies the list of data protocols specified on the LIF"
   node:
-    required: True
+    required: False
     description:
       - "Home node of the LIF"
   port:
-    required: True
+    required: False
     description:
       - "Home port of the LIF"
   ip:
-    required: True
+    required: False
     description:
       - "IP address of the LIF"
   netmask:
-    required: True
+    required: False
     description:
       - "Subnet mask of the LIF"
   subnet:
     required: False
     description:
       - "subnet name; ip and netmask not used if this parameter is specified"
-  status_admin:
-    required: False
-    description:
-      - "Specifies the administrative status of the LIF. Possible values are 'up' and 'down'"
   failover_group:
     required: False
     description:
@@ -84,27 +80,24 @@ options:
     description:
       - "Specifies the failover policy for the LIF. Possible values: 'nextavail', 'priority', 'disabled', 'system_defined', 'system_defined', 'sfo_partner_only', 'ipspace_wide', 'broadcast_domain_wide'"
 
+
 '''
 
 EXAMPLES = '''
-# Create lif lif_nfs_01
-- name: Create lif for nfs
-    int_create:
+# Modify failover for lif lif_nfs_01
+- name: change failover to system-defined and cluster-mgmt
+    int_modify:
       cluster: "192.168.0.1"
       user_name: "admin"
       password: "Password1"
       vserver: "svm_nfs"
       lif: "lif_nfs_01"
-      role: "data"
-      data_proto: "nfs"
-      node: "atlcdot-01"
-      port: "e0d"
-      ip: "192.168.1.178"
-      netmask: "255.255.255.0"
+      failover_group: "cluster-mgmt"
+      failover_policy: "system_defined"
 
 '''
 
-def int_create(module):
+def int_modify(module):
 
   cluster = module.params['cluster']
   user_name = module.params['user_name']
@@ -118,10 +111,8 @@ def int_create(module):
   ip = module.params['ip']
   netmask = module.params['netmask']
   subnet = module.params['subnet']
-  status_admin = module.params['status_admin']
   failover_group = module.params['failover_group']
   failover_policy = module.params['failover_policy']
-
 
   results = {}
 
@@ -134,24 +125,27 @@ def int_create(module):
   s.set_style("LOGIN")
   s.set_admin_user(user_name, password)
 
-  api = NaElement('net-interface-create')
-  api.child_add_string('address', ip)
+  api = NaElement('net-interface-modify')
 
-  xi = NaElement('data-protocols')
-  api.child_add(xi)
+  if module.params['ip']:
+    api.child_add_string('address', ip)
   if module.params['data_proto']:
+    xi = NaElement('data-protocols')
+    api.child_add(xi)
     for proto in data_proto:
       xi.child_add_string('data-protocol', proto)
-  api.child_add_string('home-node', node)
-  api.child_add_string('home-port', port)
+  if module.params['node']:
+    api.child_add_string('home-node', node)
+  if module.params['port']:
+    api.child_add_string('home-port', port)
   api.child_add_string('interface-name', lif)
-  api.child_add_string('netmask', netmask)
-  api.child_add_string('role', role)
+  if module.params['netmask']:
+    api.child_add_string('netmask', netmask)
+  if module.params['node']:
+    api.child_add_string('role', role)
   api.child_add_string('vserver', vserver)
   if module.params['subnet']:
     api.child_add_string('subnet-name', subnet)
-  if module.params['status_admin']:
-    api.child_add_string('administrative-status', status_admin)
   if module.params['failover_group']:
     api.child_add_string('failover-group', failover_group)
   if module.params['failover_policy']:
@@ -177,25 +171,23 @@ def main():
       cluster=dict(required=True),
       user_name=dict(required=True),
       password=dict(required=True),
-      node=dict(required=True),
+      node=dict(required=False),
       vserver=dict(required=True),
       lif=dict(required=True),
-      role=dict(default='data', choices=['undef', 'cluster', 'data', 'node_mgmt', 'intercluster', 'cluster_mgmt']),
+      role=dict(required=False, choices=['undef', 'cluster', 'data', 'node_mgmt', 'intercluster', 'cluster_mgmt']),
       data_proto=dict(required=False, type='list'),
-      port=dict(required=True),
-      ip=dict(required=True),
-      netmask=dict(required=True),
+      port=dict(required=False),
+      ip=dict(required=False),
+      netmask=dict(required=False),
       subnet=dict(required=False),
-      status_admin=dict(default='up', choices=['up', 'down']),
       failover_group=dict(required=False),
       failover_policy=dict(required=False, choices=['nextavail', 'priority', 'disabled', 'system_defined', 'system_defined', 'sfo_partner_only', 'ipspace_wide', 'broadcast_domain_wide']),
-
 
     ),
     supports_check_mode = False
   )
 
-  results = int_create(module)
+  results = int_modify(module)
 
 
 

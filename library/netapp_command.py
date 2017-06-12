@@ -15,12 +15,12 @@ if not NASERVER_AVAILABLE:
 
 DOCUMENTATTION = '''
 ---
-module: date_time
+module: netapp_command
 version_added: "1.0"
-author: "Jeorry Balasabas (@jeorryb)"
-short_description: Set date, time and timezone for NetApp cDOT array.
+author: "Valerian Beaudoin"
+short_description: Run a command on a NetApp cDOT array.
 description:
-  - Ansible module to set the date, time and timezone for a NetApp CDOT array via the NetApp python SDK.
+  - Ansible module run any command on a NetApp CDOT array via the NetApp python SDK.
 requirements:
   - NetApp Manageability SDK
 options:
@@ -36,38 +36,32 @@ options:
     required: True
     description:
       - "password for the admin user"
-  timezone:
-    required: False
+  command:
+    required: True
     description:
-      - "Timezone specified in the Olson format, Area/Location Timezone"
-  date:
-    required: False
-    description:
-      - "This sets the date and time, in the format MM/DD/YYYY HH:MM:SS"
+      - "The command to be run"
 
 '''
 
 EXAMPLES = '''
-# Change date and timezone
-- name: Change date and timezone
-    date_time:
+# Run a command
+- name: Modify the policy for the volume rootvol
+    netapp_command:
       cluster: "192.168.0.1"
       user_name: "admin"
       password: "Password1"
-      timezone: "America\New_York"
-      date: "09/01/2016 10:26:00"
+      command: "volume modify -vserver vsm_nfs -volume rootvol -policy forbidden"
 
 '''
 
 
-def date_time(module):
+def netapp_command(module):
 
     cluster = module.params['cluster']
     user_name = module.params['user_name']
     password = module.params['password']
     val_certs = module.params['val_certs']
-    timezone = module.params['timezone']
-    date = module.params['date']
+    command = module.params['command']
 
     connection = NaServer(cluster, 1 , 0)
     connection.set_server_type("FILER")
@@ -93,16 +87,10 @@ def date_time(module):
 
 
     args = NaElement("args")
+    command_list=command.split()
+    for cmd in command_list:
+      args.child_add(NaElement("arg", cmd))
 
-    args.child_add(NaElement("arg", "cluster"))
-    args.child_add(NaElement("arg", "date"))
-    args.child_add(NaElement("arg", "modify"))
-    if module.params['timezone']:
-        args.child_add(NaElement("arg", "-timezone"))
-        args.child_add(NaElement("arg", timezone))
-    if module.params['date']:
-        args.child_add(NaElement("arg", "-date"))
-        args.child_add(NaElement("arg", date))
 
     systemCli = NaElement("system-cli")
     systemCli.child_add(args)
@@ -125,12 +113,11 @@ def main():
       user_name=dict(required=True),
       password=dict(required=True),
       val_certs=dict(type='bool', default=True),
-      timezone=dict(required=False),
-      date=dict(required=False),
+      command=dict(required=True, type='str'),
     ), 
       supports_check_mode=False
   )
-  results = date_time(module)
+  results = netapp_command(module)
 
   
 
