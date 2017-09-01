@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -36,6 +37,10 @@ options:
     required: True
     description:
       - "password for the admin user"
+  val_certs:
+    default: True
+    description:
+      - "Perform SSL certificate validation"
   node:
     required: True
     description:
@@ -89,75 +94,60 @@ EXAMPLES = '''
 
 def aggr_create(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  node = module.params['node']
-  disk_type = module.params['disk_type']
-  aggr = module.params['aggr']
-  disk_count = module.params['disk_count']
-  disk_size = module.params['disk_size']
-  raid_size = module.params['raid_size']
-  raid_type = module.params['raid_type']
+    node = module.params['node']
+    disk_type = module.params['disk_type']
+    aggr = module.params['aggr']
+    disk_count = module.params['disk_count']
+    disk_size = module.params['disk_size']
+    raid_size = module.params['raid_size']
+    raid_type = module.params['raid_type']
 
-  results = {}
+    results = {}
 
-  results['changed'] = False
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  api = NaElement("aggr-create")
-  api.child_add_string("disk-type", disk_type)
-  api.child_add_string("aggregate", aggr)
-  api.child_add_string("disk-count", disk_count)
-  api.child_add_string("disk-size-with-unit", disk_size)
-  api.child_add_string("raid-size", raid_size)
-  api.child_add_string("raid-type", raid_type)
-
-  xi = NaElement("nodes")
-  api.child_add(xi)
-  xi.child_add_string("node-name", node)
-
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
     results['changed'] = False
 
-  else:
-    results['changed'] = True
 
-  return results
+    api = NaElement("aggr-create")
+    api.child_add_string("disk-type", disk_type)
+    api.child_add_string("aggregate", aggr)
+    api.child_add_string("disk-count", disk_count)
+    api.child_add_string("disk-size-with-unit", disk_size)
+    api.child_add_string("raid-size", raid_size)
+    api.child_add_string("raid-type", raid_type)
+
+    xi = NaElement("nodes")
+    api.child_add(xi)
+    xi.child_add_string("node-name", node)
+
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(systemCli)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      node=dict(required=True),
-      disk_type=dict(required=True, type='str'),
-      aggr=dict(required=True),
-      disk_count=dict(required=True, type='int'),
-      disk_size=dict(required=True, type='str'),
-      raid_type=dict(default='raid_dp', type='str'),
-      raid_size=dict(required=True, type='int'),
 
-    ),
-    supports_check_mode = False
-  )
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        node=dict(required=True),
+        disk_type=dict(required=True, type='str'),
+        aggr=dict(required=True),
+        disk_count=dict(required=True, type='int'),
+        disk_size=dict(required=True, type='str'),
+        raid_type=dict(default='raid_dp', type='str'),
+        raid_size=dict(required=True, type='int'),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False) 
 
-  results = aggr_create(module)
+    results = aggr_create(module)
 
-  
-
-  module.exit_json(**results)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

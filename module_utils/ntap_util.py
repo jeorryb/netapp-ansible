@@ -7,7 +7,7 @@ def ntap_argument_spec():
     return dict(
         cluster=dict(required=True),
         user_name=dict(required=True),
-        password=dict(required=True),
+        password=dict(required=True, no_log=True),
         validate_certs=dict(type='bool', default=True),
     )
 

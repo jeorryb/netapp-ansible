@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -106,100 +107,83 @@ EXAMPLES = '''
 
 def int_create(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  node = module.params['node']
-  vserver = module.params['vserver']
-  lif = module.params['lif']
-  role = module.params['role']
-  data_proto = module.params['data_proto']
-  port = module.params['port']
-  ip = module.params['ip']
-  netmask = module.params['netmask']
-  subnet = module.params['subnet']
-  status_admin = module.params['status_admin']
-  failover_group = module.params['failover_group']
-  failover_policy = module.params['failover_policy']
+    lif = module.params['lif']
+    role = module.params['role']
+    data_proto = module.params['data_proto']
+    port = module.params['port']
+    ip = module.params['ip']
+    node = module.params['node']
+    netmask = module.params['netmask']
+    subnet = module.params['subnet']
+    vserver = module.params['vserver']
+    status_admin = module.params['status_admin']
+    failover_group = module.params['failover_group']
+    failover_policy = module.params['failover_policy']
 
-
-  results = {}
-
-  results['changed'] = False
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  api = NaElement('net-interface-create')
-  api.child_add_string('address', ip)
-
-  xi = NaElement('data-protocols')
-  api.child_add(xi)
-  if module.params['data_proto']:
-    for proto in data_proto:
-      xi.child_add_string('data-protocol', proto)
-  api.child_add_string('home-node', node)
-  api.child_add_string('home-port', port)
-  api.child_add_string('interface-name', lif)
-  api.child_add_string('netmask', netmask)
-  api.child_add_string('role', role)
-  api.child_add_string('vserver', vserver)
-  if module.params['subnet']:
-    api.child_add_string('subnet-name', subnet)
-  if module.params['status_admin']:
-    api.child_add_string('administrative-status', status_admin)
-  if module.params['failover_group']:
-    api.child_add_string('failover-group', failover_group)
-  if module.params['failover_policy']:
-    api.child_add_string('failover-policy', failover_policy)
-
-
-
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
+    results = {}
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    api = NaElement('net-interface-create')
+    api.child_add_string('address', ip)
 
-  return results
+    xi = NaElement('data-protocols')
+    api.child_add(xi)
+    if module.params['data_proto']:
+        for proto in data_proto:
+            xi.child_add_string('data-protocol', proto)
+    api.child_add_string('home-node', node)
+    api.child_add_string('home-port', port)
+    api.child_add_string('interface-name', lif)
+    api.child_add_string('netmask', netmask)
+    api.child_add_string('role', role)
+    api.child_add_string('vserver', vserver)
+    if module.params['subnet']:
+        api.child_add_string('subnet-name', subnet)
+    if module.params['status_admin']:
+        api.child_add_string('administrative-status', status_admin)
+    if module.params['failover_group']:
+        api.child_add_string('failover-group', failover_group)
+    if module.params['failover_policy']:
+        api.child_add_string('failover-policy', failover_policy)
+
+    connection = ntap_util.connect_to_api(module, vserver=vserver)
+    xo = connection.invoke_elem(api)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      node=dict(required=True),
-      vserver=dict(required=True),
-      lif=dict(required=True),
-      role=dict(default='data', choices=['undef', 'cluster', 'data', 'node_mgmt', 'intercluster', 'cluster_mgmt']),
-      data_proto=dict(required=False, type='list'),
-      port=dict(required=True),
-      ip=dict(required=True),
-      netmask=dict(required=True),
-      subnet=dict(required=False),
-      status_admin=dict(default='up', choices=['up', 'down']),
-      failover_group=dict(required=False),
-      failover_policy=dict(required=False, choices=['nextavail', 'priority', 'disabled', 'system_defined', 'system_defined', 'sfo_partner_only', 'ipspace_wide', 'broadcast_domain_wide']),
 
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        node=dict(required=True),
+        lif=dict(required=True),
+        role=dict(default='data',
+                  choices=['undef', 'cluster', 'data', 'node_mgmt',
+                           'intercluster', 'cluster_mgmt']),
+        data_proto=dict(required=False, type='list'),
+        port=dict(required=True),
+        ip=dict(required=True),
+        netmask=dict(required=True),
+        vserver=dict(required=True),
+        failover_group=dict(required=False),
+        status_admin=dict(default='up', choices=['up', 'down']),
+        failover_policy=dict(required=False, choices=['nextavail', 'priority', 'disabled',
+                                                      'system_defined', 'system_defined', 'sfo_partner_only',
+                                                      'ipspace_wide', 'broadcast_domain_wide']),
+        subnet=dict(required=False),))
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
-    ),
-    supports_check_mode = False
-  )
+    results = int_create(module)
+    module.exit_json(**results)
 
-  results = int_create(module)
-
-
-
-  module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

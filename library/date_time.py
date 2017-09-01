@@ -2,6 +2,7 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 
 try:
@@ -62,30 +63,9 @@ EXAMPLES = '''
 
 def date_time(module):
 
-    cluster = module.params['cluster']
-    user_name = module.params['user_name']
-    password = module.params['password']
-    val_certs = module.params['val_certs']
     timezone = module.params['timezone']
     date = module.params['date']
 
-    connection = NaServer(cluster, 1 , 0)
-    connection.set_server_type("FILER")
-    connection.set_transport_type("HTTPS")
-    connection.set_port(443)
-    connection.set_style("LOGIN")
-    connection.set_admin_user(user_name, password)
-
-    if not val_certs:
-        try:
-            _create_unverified_https_context = ssl._create_unverified_context
-        
-        except AttributeError:
-        # Legacy Python that doesn't verify HTTPS certificates by default
-            pass
-        else:
-        # Handle target environment that doesn't support HTTPS verification
-            ssl._create_default_https_context = _create_unverified_https_context
 
     results = {}
 
@@ -106,6 +86,7 @@ def date_time(module):
 
     systemCli = NaElement("system-cli")
     systemCli.child_add(args)
+    connection = ntap_util.connect_to_api(module)
     xo = connection.invoke_elem(systemCli)
 
     if(xo.results_errno() != 0):
@@ -119,17 +100,13 @@ def date_time(module):
     return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      val_certs=dict(type='bool', default=True),
-      timezone=dict(required=False),
-      date=dict(required=False),
-    ), 
-      supports_check_mode=False
-  )
+  
+  argument_spec = ntap_util.ntap_argument_spec()
+  argument_spec.update(dict(
+    timezone=dict(required=False),
+    date=dict(required=False),))
+  module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False) 
+    
   results = date_time(module)
 
   

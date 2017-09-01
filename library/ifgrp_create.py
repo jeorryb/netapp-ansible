@@ -2,12 +2,13 @@
 
 import sys
 import json
+from  ansible.module_utils import ntap_util
 
 try:
-  from NaServer import *
-  NASERVER_AVAILABLE = True
+    from NaServer import *
+    NASERVER_AVAILABLE = True
 except ImportError:
-  NASERVER_AVAILABLE = False
+    NASERVER_AVAILABLE = False
 
 if not NASERVER_AVAILABLE:
     module.fail_json(msg="The NetApp Manageability SDK library is not installed")
@@ -71,64 +72,50 @@ EXAMPLES = '''
 
 def ifgrp_create(module):
 
-  cluster = module.params['cluster']
-  user_name = module.params['user_name']
-  password = module.params['password']
-  node = module.params['node']
-  ifgrp = module.params['ifgrp']
-  mode = module.params['mode']
-  dist_func = module.params['dist_func']
+    node = module.params['node']
+    ifgrp = module.params['ifgrp']
+    mode = module.params['mode']
+    dist_func = module.params['dist_func']
 
-  results = {}
-
-  results['changed'] = False
-
-  s = NaServer(cluster, 1 , 0)
-  s.set_server_type("FILER")
-  s.set_transport_type("HTTPS")
-  s.set_port(443)
-  s.set_style("LOGIN")
-  s.set_admin_user(user_name, password)
-
-  api = NaElement("net-port-ifgrp-create")
-  api.child_add_string("distribution-function", dist_func)
-  api.child_add_string("ifgrp-name", ifgrp)
-  api.child_add_string("mode", mode)
-  api.child_add_string("node", node)
-
-
-  xo = s.invoke_elem(api)
-
-  if(xo.results_errno() != 0):
-    r = xo.results_reason()
-    module.fail_json(msg=r)
+    results = {}
     results['changed'] = False
 
-  else:
-    results['changed'] = True
+    api = NaElement("net-port-ifgrp-create")
+    api.child_add_string("distribution-function", dist_func)
+    api.child_add_string("ifgrp-name", ifgrp)
+    api.child_add_string("mode", mode)
+    api.child_add_string("node", node)
 
-  return results
+
+    connection = ntap_util.connect_to_api(module)
+    xo = connection.invoke_elem(api)
+
+    if(xo.results_errno() != 0):
+        r = xo.results_reason()
+        module.fail_json(msg=r)
+        results['changed'] = False
+
+    else:
+        results['changed'] = True
+
+    return results
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      cluster=dict(required=True),
-      user_name=dict(required=True),
-      password=dict(required=True),
-      node=dict(required=True),
-      dist_func=dict(default='ip', choices=['mac', 'ip', 'sequential', 'port']),
-      ifgrp=dict(required=True),
-      mode=dict(default='multimode_lacp', choices=['multimode_lacp', 'multimode', 'singlemode']),
 
-    ),
-    supports_check_mode = False
-  )
+    argument_spec = ntap_util.ntap_argument_spec()
+    argument_spec.update(dict(
+        node=dict(required=True),
+        dist_func=dict(default='ip', choices=['mac', 'ip', 'sequential', 'port']),
+        ifgrp=dict(required=True),
+        mode=dict(default='multimode_lacp',
+                  choices=['multimode_lacp', 'multimode', 'singlemode']),))
 
-  results = ifgrp_create(module)
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
+    results = ifgrp_create(module)
 
-  
 
-  module.exit_json(**results)
+
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

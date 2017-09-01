@@ -78,7 +78,7 @@
         cluster: '{{ array }}'
         user_name: '{{ user }}'
         password: '{{ pwd }}'
-        timezone: "America/Chicago"
+        timezone: "America/New_York"
         validate_certs: False
 #
     #- name: Create NTP Server
