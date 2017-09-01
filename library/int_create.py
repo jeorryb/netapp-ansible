@@ -72,7 +72,18 @@ options:
     required: False
     description:
       - "subnet name; ip and netmask not used if this parameter is specified"
-
+  status_admin:
+    required: False
+    description:
+      - "Specifies the administrative status of the LIF. Possible values are 'up' and 'down'"
+  failover_group:
+    required: False
+    description:
+      - "Specifies the failover group name."
+  failover_policy:
+    required: False
+    description:
+      - "Specifies the failover policy for the LIF. Possible values: 'nextavail', 'priority', 'disabled', 'system_defined', 'system_defined', 'sfo_partner_only', 'ipspace_wide', 'broadcast_domain_wide'"
 
 '''
 
@@ -105,6 +116,9 @@ def int_create(module):
     netmask = module.params['netmask']
     subnet = module.params['subnet']
     vserver = module.params['vserver']
+    status_admin = module.params['status_admin']
+    failover_group = module.params['failover_group']
+    failover_policy = module.params['failover_policy']
 
     results = {}
     results['changed'] = False
@@ -114,20 +128,23 @@ def int_create(module):
 
     xi = NaElement('data-protocols')
     api.child_add(xi)
-
     if module.params['data_proto']:
         for proto in data_proto:
             xi.child_add_string('data-protocol', proto)
-
     api.child_add_string('home-node', node)
     api.child_add_string('home-port', port)
     api.child_add_string('interface-name', lif)
     api.child_add_string('netmask', netmask)
     api.child_add_string('role', role)
     api.child_add_string('vserver', vserver)
-
     if module.params['subnet']:
         api.child_add_string('subnet-name', subnet)
+    if module.params['status_admin']:
+        api.child_add_string('administrative-status', status_admin)
+    if module.params['failover_group']:
+        api.child_add_string('failover-group', failover_group)
+    if module.params['failover_policy']:
+        api.child_add_string('failover-policy', failover_policy)
 
     connection = ntap_util.connect_to_api(module, vserver=vserver)
     xo = connection.invoke_elem(api)
@@ -156,11 +173,17 @@ def main():
         ip=dict(required=True),
         netmask=dict(required=True),
         vserver=dict(required=True),
+        failover_group=dict(required=False),
+        status_admin=dict(default='up', choices=['up', 'down']),
+        failover_policy=dict(required=False, choices=['nextavail', 'priority', 'disabled',
+                                                      'system_defined', 'system_defined', 'sfo_partner_only',
+                                                      'ipspace_wide', 'broadcast_domain_wide']),
         subnet=dict(required=False),))
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     results = int_create(module)
     module.exit_json(**results)
+
 
 from ansible.module_utils.basic import *
 main()
